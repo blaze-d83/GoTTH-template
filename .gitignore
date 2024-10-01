@@ -1,0 +1,8 @@
+/bin
+/node_modules
+/store/db
+/static/dist/
+package.json
+package-lock.json
+tailwind.config.js
+
