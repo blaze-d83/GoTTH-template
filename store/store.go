@@ -24,7 +24,7 @@ func InitDatabase() *Store  {
 		log.Fatalf("Failed to run migrate: %v", err)
 	}
 	return db
-	
+
 }
 
 func NewSQLStorage(dbPath string) (*Store, error) {
