@@ -58,9 +58,7 @@ GOTTH-stack
 git clone https://github.com/yourusername/GOTTH-stack.git
 cd GOTTH-stack
 ```
-### 2. Remove the .git 
-
-### 3. Follow TODO.md for setup and running the application
+### 2. Follow TODO.md for setup and running the application
 
 ---
 
