@@ -1,0 +1,26 @@
+# Ignore the binary output directory
+/bin
+
+# Ignore Go modules and vendor directory
+/vendor
+/go.sum
+/go.mod
+
+# Ignore local environment files
+.env
+
+# Ignore local development files
+.idea
+.vscode
+
+# Ignore test files and directories
+/tests
+*.test
+
+# Ignore node_modules if using a frontend framework
+node_modules
+
+# Ignore any other files you don’t want in your image
+README.md
+LICENSE
+
