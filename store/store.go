@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/blaze-d83/go-GoTTH/types"
+	"github.com/blaze-d83/go-GoTTH/pkg/types"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
