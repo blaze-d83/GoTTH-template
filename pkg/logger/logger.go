@@ -1,9 +1,9 @@
 /*
-	-- Logger Package --
+-- Logger Package --
 
-	This package provides a simple logging interface with support for both synchronous and asynchronous logging.
+This package provides a simple logging interface with support for both synchronous and asynchronous logging.
 
-	Uses slog package for structure logging in various formats.
+Uses slog package for structure logging in various formats.
 */
 package logger
 
@@ -15,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/blaze-d83/go-GoTTH/config"
 	"github.com/labstack/echo/v4"
 )
 
@@ -35,11 +36,11 @@ type SyncLogger struct {
 // AsyncLogger provides a logger that writes log entries asynchronously
 type AsyncLogger struct {
 	// logger is the underlying slog.Logger instance for logging
-	logger   *slog.Logger
+	logger *slog.Logger
 	// logChan is a buffered channel that holds the log entries for async processing
-	logChan  chan LogEntry
+	logChan chan LogEntry
 	// wg initializes sync.WaitGroup to track collection of goroutines
-	wg       sync.WaitGroup
+	wg sync.WaitGroup
 	// stopChan is used to signal the logger to stop processing
 	stopChan chan struct{}
 }
@@ -51,11 +52,8 @@ type LogEntry struct {
 	fields  []slog.Attr // Additional attributes associated with log entry
 }
 
-
 // NewLogger initializes the new LoggerStrategy based on the configured logger type (sync or async)
-func NewLogger() LoggerStrategy {
-	loggerType := setLoggerType() // Determine whether to use sync or async logging
-	handler := setLogFormat()     // Sets the logging format based on desired environment
+func NewLogger(loggerType bool, handler slog.Handler) LoggerStrategy {
 	logger := slog.New(handler)   // Creates a new slogger instance
 
 	// Returns the appropriate logger type
@@ -87,7 +85,7 @@ func newAsyncLogger(logger *slog.Logger, buffersize int) *AsyncLogger {
 }
 
 /*
-		 -- Synchronous logging methods --
+ -- Synchronous logging methods --
 */
 
 func (l *SyncLogger) LogRequests(ctx echo.Context) {
@@ -129,9 +127,8 @@ func (l *SyncLogger) LogEvent(message string, fields ...slog.Attr) {
 	l.logger.Info(message, args)
 }
 
-
 /*
-		 -- Asynchronous logging methods --
+ -- Asynchronous logging methods --
 */
 
 func (l *AsyncLogger) LogRequests(ctx echo.Context) {
@@ -213,21 +210,19 @@ func (l *AsyncLogger) StopLogger() {
 }
 
 /*
-		-- Local utilities --
+	-- Local utilities --
 */
 
-func setLoggerType() bool {
-	loggerType := os.Getenv("LOGGER_TYPE")
-	if strings.ToLower(loggerType) == "async" {
+func setLoggerType(cfg *config.Config) bool {
+	if strings.ToLower(cfg.Logger.LogType) == "async" {
 		return true
 	}
 	return false
 }
 
-func setLogFormat() slog.Handler {
+func setLogFormat(cfg *config.Config) slog.Handler {
 	var handler slog.Handler
-	logFormat := os.Getenv("LOG_FORMAT")
-	if strings.ToLower(logFormat) == "json" {
+	if strings.ToLower(cfg.Logger.LogFormat) == "json" {
 		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{})
 	} else {
 		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{})

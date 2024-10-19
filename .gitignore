@@ -1,4 +1,5 @@
 /bin
+.env
 /node_modules
 /store/db
 /static/dist/
