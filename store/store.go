@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/blaze-d83/go-GoTTH/config"
 	"github.com/blaze-d83/go-GoTTH/pkg/types"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -14,8 +15,7 @@ type Store struct {
 }
 
 func InitDatabase() *Store  {
-	dbPath := "./store/db/test.db"
-	db, err := NewSQLStorage(dbPath)
+	db, err := NewSQLStorage()
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
@@ -27,8 +27,8 @@ func InitDatabase() *Store  {
 
 }
 
-func NewSQLStorage(dbPath string) (*Store, error) {
-	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
+func NewSQLStorage(cfg config.Config) (*Store, error) {
+	db, err := gorm.Open(sqlite.Open(cfg.Database.SQLite.DBPath), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect database: %w", err)
 	}
