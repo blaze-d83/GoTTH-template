@@ -18,6 +18,8 @@ type Config struct {
 type LoggerConfig struct {
 	LogType   string
 	LogFormat string
+	LogLevel  string
+	LogOutput string
 }
 
 type ServerConfig struct {
@@ -69,7 +71,7 @@ func LoadConfig() *Config {
 		Database: DBConfig{
 			MySQL:      MySQL{},
 			PostgreSQL: PostgreSQL{},
-			SQLite:     SQLite{
+			SQLite: SQLite{
 				DBPath: getEnv("DB_PATH", "./db"),
 			},
 		},

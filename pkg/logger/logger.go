@@ -54,7 +54,7 @@ type LogEntry struct {
 
 // NewLogger initializes the new LoggerStrategy based on the configured logger type (sync or async)
 func NewLogger(loggerType bool, handler slog.Handler) LoggerStrategy {
-	logger := slog.New(handler)   // Creates a new slogger instance
+	logger := slog.New(handler) // Creates a new slogger instance
 
 	// Returns the appropriate logger type
 	if loggerType {
@@ -213,19 +213,54 @@ func (l *AsyncLogger) StopLogger() {
 	-- Local utilities --
 */
 
-func setLoggerType(cfg *config.Config) bool {
-	if strings.ToLower(cfg.Logger.LogType) == "async" {
+func setLogFormat(cfg config.LoggerConfig) slog.Handler {
+	var handler slog.Handler
+	level := setLogLevel(cfg)
+	output, err := logOutput(cfg)
+	if err != nil {
+		return nil
+	}
+	if strings.ToLower(cfg.LogFormat) == "json" {
+		handler = slog.NewJSONHandler(output, &slog.HandlerOptions{Level: level})
+	} else {
+		handler = slog.NewTextHandler(output, &slog.HandlerOptions{Level: level})
+	}
+	return handler
+}
+
+func setLoggerType(cfg config.LoggerConfig) bool {
+	if strings.ToLower(cfg.LogType) == "async" {
 		return true
 	}
 	return false
 }
 
-func setLogFormat(cfg *config.Config) slog.Handler {
-	var handler slog.Handler
-	if strings.ToLower(cfg.Logger.LogFormat) == "json" {
-		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{})
-	} else {
-		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{})
+func setLogLevel(cfg config.LoggerConfig) slog.Level {
+	switch strings.ToLower(cfg.LogLevel) {
+	case "debug":
+		return slog.LevelDebug
+	case "warn":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
 	}
-	return handler
+}
+
+func logOutput(cfg config.LoggerConfig) (*os.File, error) {
+	var output *os.File
+	var err error
+
+	if strings.ToLower(cfg.LogOutput) == "stdout" {
+		output = os.Stdout
+	} else {
+		output, err = os.OpenFile(cfg.LogOutput, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+		if err != nil {
+			panic("faile to open log file: " + err.Error())
+		}
+	}
+
+	return output, err
+
 }
