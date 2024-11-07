@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/blaze-d83/go-GoTTH/config"
+	"github.com/blaze-d83/go-GoTTH/pkg/config"
 	"github.com/labstack/echo/v4"
 )
 
