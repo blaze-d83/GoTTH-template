@@ -1,9 +1,11 @@
 /bin
 .env
 /node_modules
-/store/db
 /static/dist/
 package.json
 package-lock.json
 tailwind.config.js
-
+yarn.lock
+*.db
+*.sqlite3
+*.sqlite

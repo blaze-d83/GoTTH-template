@@ -1,0 +1,17 @@
+version: "2"
+
+sql:
+  - schema: "internal/repository/schema.sql"       # Path to your schema file
+    queries: "internal/repository/queries" # Path to your queries folder
+    engine: "sqlite"                     # Use "sqlite" or "postgresql" based on your setup
+    gen:
+      go:
+        package: "repository"            # Package name for generated code
+        out: "internal/repository"        # Output path for generated Go code
+
+options:
+  emit_json_tags: true                   # Optionally adds JSON tags to generated struct fields
+  emit_prepared_queries: false           # Disable prepared statements
+  emit_interface: true                   # Generate interface types for the queries
+  emit_exact_table_names: false          # Set to true if you want Go structs with exact table names
+
