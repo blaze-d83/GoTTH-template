@@ -16,15 +16,14 @@ import (
 	"time"
 
 	"github.com/blaze-d83/go-GoTTH/pkg/config"
-	"github.com/labstack/echo/v4"
 )
 
 // LoggerStrategy defines an interface for logging strategies
-type LoggerStrategy interface {
-	LogRequests(ctx echo.Context)                                      // Logs an HTTP Request
-	LogResponses(ctx echo.Context, status int, duration time.Duration) // Logs an HTTP Response
-	LogError(ctx echo.Context, err error)                              // Logs an error that occured during an HTTP request
-	LogEvent(message string, fields ...slog.Attr)                      // Logs a general event with custom attributes
+type Logger interface {
+	LogRequests(ctx context.Context, method, path, remoteAddr, requestID string)                          // Logs an HTTP Request
+	LogResponses(ctx context.Context, status int, duration time.Duration, method, path, requestID string) // Logs an HTTP Response
+	LogError(ctx context.Context, err error, method, path, requestID string)                              // Logs an error that occured during an HTTP request
+	LogEvent(ctx context.Context, message string, fields ...slog.Attr)                                    // Logs a general event with custom attributes
 }
 
 // SyncLogger provides a logger that writes log entries synchronously
@@ -52,15 +51,49 @@ type LogEntry struct {
 	fields  []slog.Attr // Additional attributes associated with log entry
 }
 
-// NewLogger initializes the new LoggerStrategy based on the configured logger type (sync or async)
-func NewLogger(loggerType bool, handler slog.Handler) LoggerStrategy {
-	logger := slog.New(handler) // Creates a new slogger instance
-
-	// Returns the appropriate logger type
-	if loggerType {
-		return newAsyncLogger(logger, 100)
+func InitializeLogger(cfg config.LoggerConfig) (Logger, error) {
+	output, err := logOutput(cfg.LogOutput)
+	if err != nil {
+		return nil, err
 	}
-	return newSyncLogger(logger)
+
+	handler := createHandler(cfg, output)
+
+	logger := slog.New(handler)
+
+	if strings.ToLower(cfg.LogType) == "async" {
+		return newAsyncLogger(logger, 100), nil
+	}
+	return newSyncLogger(logger), nil
+}
+
+func createHandler(cfg config.LoggerConfig, output *os.File) slog.Handler {
+	level := parseLogLevel(cfg.LogLevel)
+
+	if strings.ToLower(cfg.LogFormat) == "json" {
+		return slog.NewJSONHandler(output, &slog.HandlerOptions{Level: level})
+	}
+	return slog.NewTextHandler(output, &slog.HandlerOptions{Level: level})
+}
+
+func parseLogLevel(level string) slog.Level {
+	switch strings.ToLower(level) {
+	case "debug":
+		return slog.LevelDebug
+	case "warn":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
+	}
+}
+
+func logOutput(output string) (*os.File, error) {
+	if strings.ToLower(output) == "stdout" {
+		return os.Stdout, nil
+	}
+	return os.OpenFile(output, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 }
 
 // newSyncLogger creates a new instance of SyncLogger
@@ -88,38 +121,35 @@ func newAsyncLogger(logger *slog.Logger, buffersize int) *AsyncLogger {
  -- Synchronous logging methods --
 */
 
-func (l *SyncLogger) LogRequests(ctx echo.Context) {
-	requestID := ctx.Response().Header().Get(echo.HeaderXRequestID)
+func (l *SyncLogger) LogRequests(ctx context.Context, method, path, remoteAddr, requestID string) {
 	l.logger.Info("HTTP request",
-		slog.String("method", ctx.Request().Method),
-		slog.String("path", ctx.Path()),
-		slog.String("remote_addr", ctx.RealIP()),
+		slog.String("method", method),
+		slog.String("path", path),
+		slog.String("remote_addr", remoteAddr),
 		slog.String("request_id", requestID),
 	)
 }
 
-func (l *SyncLogger) LogResponses(ctx echo.Context, status int, duration time.Duration) {
-	requestID := ctx.Response().Header().Get(echo.HeaderXRequestID)
+func (l *SyncLogger) LogResponses(ctx context.Context, status int, duration time.Duration, method, path, requestID string) {
 	l.logger.Info("HTTP response",
-		slog.String("method", ctx.Request().Method),
-		slog.String("path", ctx.Path()),
+		slog.String("method", method),
+		slog.String("path", path),
 		slog.Int("status", status),
 		slog.Duration("duration", duration),
 		slog.String("request_id", requestID),
 	)
 }
 
-func (l *SyncLogger) LogError(ctx echo.Context, err error) {
-	requestID := ctx.Response().Header().Get(echo.HeaderXRequestID)
+func (l *SyncLogger) LogError(ctx context.Context, err error, method, path, requestID string) {
 	l.logger.Error("ERROR",
-		slog.String("method", ctx.Request().Method),
-		slog.String("path", ctx.Path()),
+		slog.String("method", method),
+		slog.String("path", path),
 		slog.Any("error", err),
 		slog.String("request_id", requestID),
 	)
 }
 
-func (l *SyncLogger) LogEvent(message string, fields ...slog.Attr) {
+func (l *SyncLogger) LogEvent(ctx context.Context, message string, fields ...slog.Attr) {
 	args := make([]any, len(fields))
 	for i, field := range fields {
 		args[i] = field
@@ -131,29 +161,27 @@ func (l *SyncLogger) LogEvent(message string, fields ...slog.Attr) {
  -- Asynchronous logging methods --
 */
 
-func (l *AsyncLogger) LogRequests(ctx echo.Context) {
-	requestID := ctx.Response().Header().Get(echo.HeaderXRequestID)
+func (l *AsyncLogger) LogRequests(ctx context.Context, method, path, remote_addr, requestID string) {
 	entry := LogEntry{
 		message: "HTTP request",
 		level:   slog.LevelInfo,
 		fields: []slog.Attr{
-			slog.String("method", ctx.Request().Method),
-			slog.String("path", ctx.Path()),
-			slog.String("remote_addr", ctx.RealIP()),
+			slog.String("method", method),
+			slog.String("path", path),
+			slog.String("remote_addr", remote_addr),
 			slog.String("request_id", requestID),
 		},
 	}
 	l.logChan <- entry
 }
 
-func (l *AsyncLogger) LogResponses(ctx echo.Context, status int, duration time.Duration) {
-	requestID := ctx.Response().Header().Get(echo.HeaderXRequestID)
+func (l *AsyncLogger) LogResponses(ctx context.Context, status int, duration time.Duration, method, path, requestID string) {
 	entry := LogEntry{
 		message: "HTTP response",
 		level:   slog.LevelInfo,
 		fields: []slog.Attr{
-			slog.String("method", ctx.Request().Method),
-			slog.String("path", ctx.Path()),
+			slog.String("method", method),
+			slog.String("path", path),
 			slog.Int("status", status),
 			slog.Duration("duration", duration),
 			slog.String("request_id", requestID),
@@ -162,14 +190,13 @@ func (l *AsyncLogger) LogResponses(ctx echo.Context, status int, duration time.D
 	l.logChan <- entry
 }
 
-func (l *AsyncLogger) LogError(ctx echo.Context, err error) {
-	requestID := ctx.Response().Header().Get(echo.HeaderXRequestID)
+func (l *AsyncLogger) LogError(ctx context.Context, err error, method, path, requestID string) {
 	entry := LogEntry{
 		message: "ERROR",
 		level:   slog.LevelError,
 		fields: []slog.Attr{
-			slog.String("method", ctx.Request().Method),
-			slog.String("path", ctx.Path()),
+			slog.String("method", method),
+			slog.String("path", path),
 			slog.Any("error", err),
 			slog.String("request_id", requestID),
 		},
@@ -177,7 +204,7 @@ func (l *AsyncLogger) LogError(ctx echo.Context, err error) {
 	l.logChan <- entry
 }
 
-func (l *AsyncLogger) LogEvent(message string, fields ...slog.Attr) {
+func (l *AsyncLogger) LogEvent(ctx context.Context, message string, fields ...slog.Attr) {
 	entry := LogEntry{
 		message: message,
 		level:   slog.LevelInfo,
@@ -206,61 +233,5 @@ func (l *AsyncLogger) processLogs() {
 func (l *AsyncLogger) StopLogger() {
 	close(l.stopChan)
 	l.wg.Wait()
-
-}
-
-/*
-	-- Local utilities --
-*/
-
-func setLogFormat(cfg config.LoggerConfig) slog.Handler {
-	var handler slog.Handler
-	level := setLogLevel(cfg)
-	output, err := logOutput(cfg)
-	if err != nil {
-		return nil
-	}
-	if strings.ToLower(cfg.LogFormat) == "json" {
-		handler = slog.NewJSONHandler(output, &slog.HandlerOptions{Level: level})
-	} else {
-		handler = slog.NewTextHandler(output, &slog.HandlerOptions{Level: level})
-	}
-	return handler
-}
-
-func setLoggerType(cfg config.LoggerConfig) bool {
-	if strings.ToLower(cfg.LogType) == "async" {
-		return true
-	}
-	return false
-}
-
-func setLogLevel(cfg config.LoggerConfig) slog.Level {
-	switch strings.ToLower(cfg.LogLevel) {
-	case "debug":
-		return slog.LevelDebug
-	case "warn":
-		return slog.LevelWarn
-	case "error":
-		return slog.LevelError
-	default:
-		return slog.LevelInfo
-	}
-}
-
-func logOutput(cfg config.LoggerConfig) (*os.File, error) {
-	var output *os.File
-	var err error
-
-	if strings.ToLower(cfg.LogOutput) == "stdout" {
-		output = os.Stdout
-	} else {
-		output, err = os.OpenFile(cfg.LogOutput, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
-		if err != nil {
-			panic("faile to open log file: " + err.Error())
-		}
-	}
-
-	return output, err
 
 }

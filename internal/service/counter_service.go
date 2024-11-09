@@ -11,11 +11,11 @@ import (
 
 type CounterService struct {
 	db      *sql.DB
-	logger  logger.LoggerStrategy
+	logger  logger.Logger
 	queries *repository.Queries
 }
 
-func NewCounterService(db *sql.DB, logger logger.LoggerStrategy) *CounterService {
+func NewCounterService(db *sql.DB, logger logger.Logger) *CounterService {
 	return &CounterService{
 		db:      db,
 		logger:  logger,
