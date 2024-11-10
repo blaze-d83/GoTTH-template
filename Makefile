@@ -1,5 +1,5 @@
 # Variables
-BINARY_NAME=blog
+BINARY_NAME=app
 SRC_DIR=cmd
 MAIN=$(SRC_DIR)/main.go
 BIN_DIR=bin
@@ -8,7 +8,7 @@ ENV_FILE=.env
 # Default target to build the application
 build: 
 	@echo "Building the Go application..."
-	@if not exist $(BIN_DIR) (mkdir $(BIN_DIR))
+	@mkdir -p $(BIN_DIR)
 	go build -o $(BIN_DIR)/$(BINARY_NAME) $(MAIN)
 
 # Run the application

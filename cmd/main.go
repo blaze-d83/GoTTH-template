@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/blaze-d83/go-GoTTH/internal/handlers"
-	"github.com/blaze-d83/go-GoTTH/internal/service"
 	"github.com/blaze-d83/go-GoTTH/pkg/config"
 	"github.com/blaze-d83/go-GoTTH/pkg/logger"
 )
@@ -24,11 +23,11 @@ func main() {
 		log.Fatalf("Failed to intialize logger: %v", err)
 	}
 
-	service := service.NewCounterService(db, logger)
-	handler := handlers.NewHandler(service)
+	handler := handlers.NewHandler(db, logger)
 
+	http.HandleFunc("/", handler.HomePage)
 	http.HandleFunc("/counter", handler.GetCounter)
-	http.HandleFunc("/increment", handler.UpdateCounter)
+	http.HandleFunc("/increment", handler.IncrementCounter)
 	http.HandleFunc("/decrement", handler.DecrementCounter)
 
 	log.Println("Starting server on :8080...")

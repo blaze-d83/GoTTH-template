@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"log"
 	"os"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Config struct {
@@ -44,4 +46,3 @@ func InitDB(dbPath DBConfig) (*sql.DB, error) {
 	return db, nil
 }
 
-func InitLogger()
