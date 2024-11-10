@@ -150,11 +150,12 @@ func (l *SyncLogger) LogError(ctx context.Context, err error, method, path, requ
 }
 
 func (l *SyncLogger) LogEvent(ctx context.Context, message string, fields ...slog.Attr) {
-	args := make([]any, len(fields))
+	args := make([]any, len(fields)*2)
 	for i, field := range fields {
-		args[i] = field
+		args[i*2] = field.Key
+		args[i*2+1] = field.Value
 	}
-	l.logger.Info(message, args)
+	l.logger.Info(message, args...)
 }
 
 /*

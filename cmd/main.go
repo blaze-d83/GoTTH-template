@@ -7,9 +7,16 @@ import (
 	"github.com/blaze-d83/go-GoTTH/internal/handlers"
 	"github.com/blaze-d83/go-GoTTH/pkg/config"
 	"github.com/blaze-d83/go-GoTTH/pkg/logger"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Failed to .env file")
+	}
+
 	cfg := config.LoadConfig()
 
 	db, err := config.InitDB(cfg.DBConfig)

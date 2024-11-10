@@ -27,15 +27,22 @@ type DBConfig struct {
 func LoadConfig() Config {
 	return Config{
 		LoggerConfig: LoggerConfig{
-			LogFormat: os.Getenv("LOG_FORMAT"),
-			LogType:   os.Getenv("LOG_TYPE"),
-			LogLevel:  os.Getenv("LOG_LEVEL"),
-			LogOutput: os.Getenv("LOG_OUTPUT"),
+			LogFormat: getEnv("LOG_FORMAT", "text"),
+			LogType:   getEnv("LOG_TYPE", "sync"),
+			LogLevel:  getEnv("LOG_LEVEL", "info"),
+			LogOutput: getEnv("LOG_OUTPUT", "stdout"),
 		},
 		DBConfig: DBConfig{
-			DBPath: os.Getenv("DB_PATH"),
+			DBPath: getEnv("DB_PATH", "./internal/repository/db/"),
 		},
 	}
+}
+
+func getEnv(key, defaultValue string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return defaultValue
 }
 
 func InitDB(dbPath DBConfig) (*sql.DB, error) {
@@ -45,4 +52,3 @@ func InitDB(dbPath DBConfig) (*sql.DB, error) {
 	}
 	return db, nil
 }
-
