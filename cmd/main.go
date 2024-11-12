@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/blaze-d83/go-GoTTH/internal/handlers"
+	"github.com/blaze-d83/go-GoTTH/internal/middleware"
 	"github.com/blaze-d83/go-GoTTH/pkg/config"
 	"github.com/blaze-d83/go-GoTTH/pkg/logger"
 	"github.com/joho/godotenv"
@@ -14,31 +15,34 @@ func main() {
 
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("Failed to .env file")
+		log.Println("Failed to load .env file")
 	}
 
-	cfg := config.LoadConfig()
+	dbConfig := config.LoadConfig()
 
-	db, err := config.InitDB(cfg.DBConfig)
+	logger := logger.NewLogger()
+
+	db, err := config.InitDB(dbConfig)
 	if err != nil {
 		log.Fatalf("Failed to initialize db: %v", err)
 	}
 	defer db.Close()
 
-	logger, err := logger.InitializeLogger(cfg.LoggerConfig)
-	if err != nil {
-		log.Fatalf("Failed to intialize logger: %v", err)
-	}
-
 	handler := handlers.NewHandler(db, logger)
 
-	http.HandleFunc("/", handler.HomePage)
-	http.HandleFunc("/counter", handler.GetCounter)
-	http.HandleFunc("/increment", handler.IncrementCounter)
-	http.HandleFunc("/decrement", handler.DecrementCounter)
+	fs := http.FileServer(http.Dir("./static"))
+
+	mux := http.NewServeMux()
+	mux.Handle("/static/", http.StripPrefix("/static", fs))
+	mux.HandleFunc("/", handler.HomePage)
+	mux.HandleFunc("/counter", handler.GetCounter)
+	mux.HandleFunc("/increment", handler.IncrementCounter)
+	mux.HandleFunc("/decrement", handler.DecrementCounter)
+
+	loggedMux := middleware.LoggingMiddleware(logger, mux)
 
 	log.Println("Starting server on :8080...")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":8080", loggedMux); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }

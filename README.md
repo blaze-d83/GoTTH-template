@@ -2,40 +2,6 @@
 
 This repository serves as a fullstack application template built with Go, Templ, TailwindCSS, HTMX, and other modern technologies. It provides a solid foundation for building scalable web applications with server-side rendering, frontend styling, and easy interactivity.
 
-## Project Directory
-
-```plaintext
-GOTTH-stack
-├── bin/                          # Binary outputs after build
-├── cmd/                          # Main application entry points
-│   └── main.go                   # Main Go application file
-├── config/                       # Configuration files for different environments
-├── Dockerfile                    # Docker configuration file for building and running the app
-├── internal/                     # Core internal modules (handlers, routes, templates)
-│   ├── handlers/                 # API and web route handlers
-│   ├── routes/                   # Route definitions
-│   └── templates/                # .templ files for server-side rendering (using Templ)
-├── node_modules/                 # Frontend dependencies (installed via npm)
-├── pkg/                          # Shared packages
-│   ├── htmx/                     # HTMX integration and helper functions
-│   ├── logger/                   # Logging utility using slog
-│   ├── middleware/               # Custom middlewares for Echo framework
-│   ├── services/                 # Business logic and services layer
-│   ├── types/                    # Custom types and models
-│   ├── utils/                    # Utility functions and helpers
-│   └── validator/                # Input validation utilities
-├── static/                       # Static assets (e.g., JS, CSS, images)
-│   ├── styles.css                # Main input CSS file for Tailwind
-│   └── dist/
-│       └── output.css            # Compiled CSS output (after Tailwind build)
-├── store/                        # Database connection and setup (SQLite, MySQL, PostgreSQL)
-├── utils/                        # Additional utility functions
-├── .gitignore                    # Files and directories to ignore in git
-├── Makefile                      # Makefile for building, running, and testing the app
-├── go.mod                        # Go module definition
-├── go.sum                        # Go module dependencies lock file
-└── README.md                     # Project documentation
-```
 
 ## Features
 
