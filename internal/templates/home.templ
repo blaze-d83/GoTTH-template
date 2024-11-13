@@ -1,5 +1,9 @@
 package templates
 
+type Props struct {
+	counter int64
+}
+
 templ BaseTemplate() {
 	<!DOCTYPE html>
 	<html lang="en">
@@ -7,8 +11,8 @@ templ BaseTemplate() {
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<title>GoTTH Stack</title>
-			<link href="/static/dist/styles.css" rel="stylesheet"/>
-			<script src="https://unpkg.com/htmx.org@1.9.2"></script>
+			<link href="/static/css/output.css" rel="stylesheet"/>
+			<script src="/static/js/htmx.min.js"></script>
 		</head>
 		<body class="bg-gray-100 text-gray-900 antialiased">
 			<header class="p-6 bg-blue-600 text-white">
@@ -23,8 +27,8 @@ templ BaseTemplate() {
 				<p>
 					This template serves as the starting point for your GoTTH Stack application. Use Go for the backend, TailwindCSS for utility-first styling, Templ for templating, and HTMX for modern web interactions without JavaScript.
 				</p>
-				<button class="px-4 py-2 mt-4 text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400" hx-get="/some-endpoint" hx-target="#response">
-					HTMX Example Button
+				<button class="px-4 py-2 mt-4 text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400" hx-get="/counter" hx-target="#response">
+					Push	
 				</button>
 				<div id="response" class="mt-4"></div>
 			</main>

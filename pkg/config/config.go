@@ -8,34 +8,14 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type Config struct {
-	LoggerConfig
-	DBConfig
-}
-
-type LoggerConfig struct {
-	LogFormat string
-	LogType   string
-	LogLevel  string
-	LogOutput string
-}
-
 type DBConfig struct {
 	DBPath string
 }
 
-func LoadConfig() Config {
-	return Config{
-		LoggerConfig: LoggerConfig{
-			LogFormat: getEnv("LOG_FORMAT", "text"),
-			LogType:   getEnv("LOG_TYPE", "sync"),
-			LogLevel:  getEnv("LOG_LEVEL", "info"),
-			LogOutput: getEnv("LOG_OUTPUT", "stdout"),
-		},
-		DBConfig: DBConfig{
+func LoadConfig() DBConfig {
+	return DBConfig{
 			DBPath: getEnv("DB_PATH", "./internal/repository/db/"),
-		},
-	}
+		}
 }
 
 func getEnv(key, defaultValue string) string {
