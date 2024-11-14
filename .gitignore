@@ -9,3 +9,4 @@ yarn.lock
 *.db
 *.sqlite3
 *.sqlite
+output.css

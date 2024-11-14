@@ -1,12 +1,12 @@
-package handlers
+package internal
 
 import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
 
-	"github.com/blaze-d83/go-GoTTH/internal/repository"
 	"github.com/blaze-d83/go-GoTTH/internal/templates"
+	"github.com/blaze-d83/go-GoTTH/repository"
 	"github.com/sirupsen/logrus"
 )
 

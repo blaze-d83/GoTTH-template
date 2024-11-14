@@ -1,11 +1,14 @@
 package main
 
 import (
-	"log"
+	"context"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
-	"github.com/blaze-d83/go-GoTTH/internal/handlers"
-	"github.com/blaze-d83/go-GoTTH/internal/middleware"
+	"github.com/blaze-d83/go-GoTTH/internal"
 	"github.com/blaze-d83/go-GoTTH/pkg/config"
 	"github.com/blaze-d83/go-GoTTH/pkg/logger"
 	"github.com/joho/godotenv"
@@ -13,36 +16,54 @@ import (
 
 func main() {
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Failed to load .env file")
-	}
-
-	dbConfig := config.LoadConfig()
-
 	logger := logger.NewLogger()
 
-	db, err := config.InitDB(dbConfig)
+	err := godotenv.Load()
 	if err != nil {
-		log.Fatalf("Failed to initialize db: %v", err)
+		logger.Println("WARNING: failed to load .env file, using system environment variables")
 	}
-	defer db.Close()
 
-	handler := handlers.NewHandler(db, logger)
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		logger.Fatalf("FATAL: failed to load config : %v", err)
+	}
 
-	fs := http.FileServer(http.Dir("./static"))
+	db, err := config.NewSQLiteConnection(cfg.DBConfig)
+	if err != nil {
+		logger.Fatalf("Failed to initialize database: %v", err)
+	}
+
+	handler := internal.NewHandler(db, logger)
 
 	mux := http.NewServeMux()
-	mux.Handle("/static/", http.StripPrefix("/static", fs))
-	mux.HandleFunc("/", handler.HomePage)
-	mux.HandleFunc("/counter", handler.GetCounter)
-	mux.HandleFunc("/increment", handler.IncrementCounter)
-	mux.HandleFunc("/decrement", handler.DecrementCounter)
 
-	loggedMux := middleware.LoggingMiddleware(logger, mux)
+	router := internal.RegisterRoutes(mux, handler, logger)
 
-	log.Println("Starting server on :8080...")
-	if err := http.ListenAndServe(":8080", loggedMux); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+	srv := &http.Server{
+		Addr:         cfg.Port,
+		Handler:      router,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  30 * time.Second,
 	}
+	
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGTERM)
+	go func()  {
+		logger.Printf("Starting server on %s", cfg.Port)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Fatalf("ListenAndServer error: %v", err)
+		}
+	}()
+
+	<-done
+	logger.Println("Shutting down server..")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		logger.Fatalf("failed to shutdown server: %v", err)
+	}
+
+	logger.Println("Server shutdown gracefully")
 }

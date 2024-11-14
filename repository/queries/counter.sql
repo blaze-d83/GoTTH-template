@@ -1,3 +1,4 @@
+
 -- name: GetCounter :one
 SELECT count FROM counter WHERE id = 1;
 
