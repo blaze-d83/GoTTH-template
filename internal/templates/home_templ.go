@@ -8,10 +8,6 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-type Props struct {
-	counter int64
-}
-
 func BaseTemplate() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -33,7 +29,7 @@ func BaseTemplate() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>GoTTH Stack</title><link href=\"/static/css/output.css\" rel=\"stylesheet\"><script src=\"/static/js/htmx.min.js\"></script></head><body class=\"bg-gray-100 text-gray-900 antialiased\"><header class=\"p-6 bg-blue-600 text-white\"><div class=\"container mx-auto\"><h1 class=\"text-5xl font-extrabold\">Welcome to the GoTTH Stack!</h1><p class=\"text-lg mt-2\">Go + TailwindCSS + Templ + HTMX</p></div></header><main class=\"container mx-auto my-10 prose prose-lg\"><p>This template serves as the starting point for your GoTTH Stack application. Use Go for the backend, TailwindCSS for utility-first styling, Templ for templating, and HTMX for modern web interactions without JavaScript.</p><button class=\"px-4 py-2 mt-4 text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400\" hx-get=\"/counter\" hx-target=\"#response\">Push\t</button><div id=\"response\" class=\"mt-4\"></div></main><footer class=\"p-6 bg-blue-600 text-white\"><div class=\"container mx-auto text-center\"><p>&copy; 2024 GoTTH Stack. All rights reserved.</p></div></footer></body></html>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>GoTTH Stack Counter</title><link href=\"/static/css/output.css\" rel=\"stylesheet\"><script src=\"/static/js/htmx.min.js\"></script></head><body class=\"bg-gray-100 text-gray-900 antialiased\"><header class=\"p-6 bg-blue-600 text-white\"><div class=\"container mx-auto\"><h1 class=\"text-4xl font-bold\">GoTTH Stack Counter</h1><p class=\"text-lg mt-2\">Increment or decrement the counter using the buttons below.</p></div></header><main class=\"container mx-auto my-10 flex flex-col items-center\"><div id=\"counter-display\" class=\"text-4xl font-bold mt-4\"><!-- Initial counter display, fetched from /counter endpoint --><div hx-get=\"/counter\" hx-trigger=\"load\" hx-target=\"#counter-display\" hx-swap=\"innerHTML\">Loading counter...</div></div><div class=\"mt-6 flex space-x-4\"><button class=\"px-4 py-2 text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400\" hx-post=\"/increment\" hx-target=\"#counter-display\" hx-swap=\"innerHTML\">⬆️</button> <button class=\"px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400\" hx-post=\"/decrement\" hx-target=\"#counter-display\" hx-swap=\"innerHTML\">⬇️</button></div></main><footer class=\"p-6 bg-blue-600 text-white mt-10\"><div class=\"container mx-auto text-center\"><p>&copy; 2024 GoTTH Stack. All rights reserved.</p></div></footer></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

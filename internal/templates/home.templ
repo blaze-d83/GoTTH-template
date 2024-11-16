@@ -1,38 +1,49 @@
 package templates
 
-type Props struct {
-	counter int64
-}
-
 templ BaseTemplate() {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-			<title>GoTTH Stack</title>
+			<title>GoTTH Stack Counter</title>
 			<link href="/static/css/output.css" rel="stylesheet"/>
 			<script src="/static/js/htmx.min.js"></script>
 		</head>
 		<body class="bg-gray-100 text-gray-900 antialiased">
 			<header class="p-6 bg-blue-600 text-white">
 				<div class="container mx-auto">
-					<h1 class="text-5xl font-extrabold">
-						Welcome to the GoTTH Stack!
-					</h1>
-					<p class="text-lg mt-2">Go + TailwindCSS + Templ + HTMX</p>
+					<h1 class="text-4xl font-bold">GoTTH Stack Counter</h1>
+					<p class="text-lg mt-2">Increment or decrement the counter using the buttons below.</p>
 				</div>
 			</header>
-			<main class="container mx-auto my-10 prose prose-lg">
-				<p>
-					This template serves as the starting point for your GoTTH Stack application. Use Go for the backend, TailwindCSS for utility-first styling, Templ for templating, and HTMX for modern web interactions without JavaScript.
-				</p>
-				<button class="px-4 py-2 mt-4 text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400" hx-get="/counter" hx-target="#response">
-					Push	
-				</button>
-				<div id="response" class="mt-4"></div>
+			<main class="container mx-auto my-10 flex flex-col items-center">
+				<div id="counter-display" class="text-4xl font-bold mt-4">
+					<!-- Initial counter display, fetched from /counter endpoint -->
+					<div hx-get="/counter" hx-trigger="load" hx-target="#counter-display" hx-swap="innerHTML">
+						Loading counter...
+					</div>
+				</div>
+				<div class="mt-6 flex space-x-4">
+					<button
+						class="px-4 py-2 text-white bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+						hx-post="/increment"
+						hx-target="#counter-display"
+						hx-swap="innerHTML"
+					>
+						⬆️
+					</button>
+					<button
+						class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400"
+						hx-post="/decrement"
+						hx-target="#counter-display"
+						hx-swap="innerHTML"
+					>
+						⬇️
+					</button>
+				</div>
 			</main>
-			<footer class="p-6 bg-blue-600 text-white">
+			<footer class="p-6 bg-blue-600 text-white mt-10">
 				<div class="container mx-auto text-center">
 					<p>&copy; 2024 GoTTH Stack. All rights reserved.</p>
 				</div>
